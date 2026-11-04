@@ -1,0 +1,6 @@
+pydantic>=2.0
+pydantic-ai>=2.0
+google-genai>=1.0.0
+python-dotenv>=1.0.0
+opentelemetry-api
+opentelemetry-sdk
