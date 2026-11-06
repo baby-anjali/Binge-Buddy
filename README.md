@@ -1,6 +1,6 @@
-# Personalized Media Matchmaker AI (Second Brain)
+# Personalized Media Matchmaker AI (Binge Buddy)
 
-A local-first CLI that turns your personal media reviews into a "Second Brain" to match you with books, novels, shows, movies, anime, and manhwa.
+A local-first CLI that turns your personal media reviews into a "Binge Buddy" to match you with books, novels, shows, movies, anime, and manhwa.
 
 The system leverages a multi-agent pipeline built with [Pydantic AI](https://ai.pydantic.dev/):
 
