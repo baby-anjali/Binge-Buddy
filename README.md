@@ -1,13 +1,13 @@
-# Personalized Media Matchmaker AI (Binge Buddy)
+# Binge-Buddy: Personalized Media Matchmaker AI
 
-A local-first CLI that turns your personal media reviews into a "Binge Buddy" to match you with books, novels, shows, movies, anime, and manhwa.
+A local-first CLI that turns your personal media reviews into your ultimate **Binge-Buddy** to match you with books, novels, shows, movies, anime, and manhwa.
 
 The system leverages a multi-agent pipeline built with [Pydantic AI](https://ai.pydantic.dev/):
 
 1. **Researcher Agent** extracts the structural "DNA" (genres, storytelling tropes, pacing, character archetypes) of candidate media without spoilers.
 2. **LocalRAG Engine** indexes your personal Markdown reviews and retrieves past reactions to those exact tropes and genres.
 3. **Profiler Agent** analyzes your preferences specifically concerning the candidate media's themes.
-4. **Matchmaker Agent** cross-references user preference against media traits to deliver a structured compatibility score, positive/negative coincidences, and verdict.
+4. **Binge-Buddy Matchmaker Agent** cross-references user preference against media traits to deliver a structured compatibility score, positive/negative coincidences, and verdict.
 5. **Ingestor Agent** archives your unstructured thoughts into structured Markdown reviews.
 
 ---
@@ -180,7 +180,7 @@ A full suite of executable helper scripts is provided in `scripts/`:
 
 | Script                     | Purpose                                                          |
 | :------------------------- | :--------------------------------------------------------------- |
-| `./scripts/run.sh`         | Launch the Second Brain CLI                                      |
+| `./scripts/run.sh`         | Launch the Binge-Buddy CLI                                       |
 | `./scripts/test.sh`        | Run the complete automated test suite (`evaluate.py`)            |
 | `./scripts/typecheck.sh`   | Run Mypy static type verification across all Python files        |
 | `./scripts/format.sh`      | Auto-format Python (Ruff) and Markdown/JSON (Prettier)           |

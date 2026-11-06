@@ -206,7 +206,7 @@ class PreferenceStore:
         return save_review_to_markdown(review, self.data_dir)
 
     def get_preferences_context(self) -> str:
-        """Returns clean, formatted text of user likes and dislikes for the Matchmaker."""
+        """Returns clean, formatted text of user likes and dislikes for Binge-Buddy."""
         likes = self.data.get("likes", [])
         dislikes = self.data.get("dislikes", [])
 

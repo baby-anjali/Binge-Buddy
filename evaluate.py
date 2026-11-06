@@ -1,4 +1,4 @@
-"""Automated Evaluation & Test Suite for Second Brain: Personalized Media Matchmaker
+"""Automated Evaluation & Test Suite for Binge-Buddy: Personalized Media Matchmaker
 
 Tests PII sanitization guardrails, PreferenceStore consolidation,
 Pydantic schemas, offline agent pipeline, and slash command auto-completion.
@@ -344,7 +344,7 @@ async def test_emergency_matchmaker_pipeline():
 
 def main():
     print("=" * 60)
-    print("🚀 RUNNING MATCHMAKER TEST & EVALUATION SUITE")
+    print("🚀 RUNNING BINGE-BUDDY TEST & EVALUATION SUITE")
     print("=" * 60)
 
     try:

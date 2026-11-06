@@ -110,12 +110,12 @@ profiler_agent = Agent(
     ),
 )
 
-# 3. The Matchmaker Agent (Cross-references media traits with user taste into a structured verdict)
+# 3. The Binge-Buddy Matchmaker Agent (Cross-references media traits with user taste into a structured verdict)
 matchmaker_agent = Agent(
     model=DEFAULT_MODEL,
     output_type=MatchVerdict,
     system_prompt=(
-        "You are a Personalized Media Matchmaker. You will receive:\n"
+        "You are Binge-Buddy, a Personalized Media Matchmaker. You will receive:\n"
         "1. The structural research of a candidate media (genres, tropes, pacing, archetypes).\n"
         "2. The user's taste profile derived from their personal review archive.\n\n"
         "Your task:\n"
@@ -137,13 +137,13 @@ ingestor_agent = Agent(
     ),
 )
 
-# 5. Emergency Single-Pass Matchmaker Agent
+# 5. Emergency Single-Pass Binge-Buddy Agent
 # Combines structural research and matchmaking in 1 single network call if Researcher fails
 emergency_matchmaker_agent = Agent(
     model=DEFAULT_MODEL,
     output_type=MatchVerdict,
     system_prompt=(
-        "You are an Emergency Direct Media Matchmaker. When given a candidate media title and user preferences:\n"
+        "You are Binge-Buddy in Emergency Direct Mode. When given a candidate media title and user preferences:\n"
         "1. Identify its structural storytelling traits (genres, narrative tropes, pacing, archetypes) without spoilers.\n"
         "2. Directly cross-reference those traits with the user's confirmed likes and dislikes.\n"
         "3. Produce a structured MatchVerdict: compatibility score (0-100), recommendation tier, positive coincidences, "

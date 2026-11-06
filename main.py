@@ -140,7 +140,7 @@ def render_verdict(verdict: MatchVerdict):
     bar = "█" * filled + "░" * (bar_length - filled)
 
     print("\n" + "=" * 60)
-    print(f"🎬 MATCHMAKER VERDICT: {verdict.title.upper()}")
+    print(f"🎬 BINGE-BUDDY VERDICT: {verdict.title.upper()}")
     print("=" * 60)
     print(f"📊 Compatibility: [{bar}] {verdict.match_score}%  ({verdict.recommendation})")
 
@@ -207,7 +207,7 @@ async def handle_match_request(user_input: str):
     print(f"   Themes/Tropes: {', '.join(research.themes_and_tropes[:4])}")
 
     # 2. Matchmaker: Compare directly with User Confirmed Likes & Dislikes
-    print("⚖️  [Matchmaker] Comparing media traits against your taste preferences...")
+    print("⚖️  [Binge-Buddy] Comparing media traits against your taste preferences...")
     user_preferences_context = rag.get_preferences_context()
 
     matchmaker_prompt = (
@@ -272,7 +272,7 @@ async def save_new_review(raw_text: str, session: PromptSession):
 
 
 async def main():
-    print("🧠 Second Brain: Personalized Media Matchmaker Initialized!")
+    print("🍿 Binge-Buddy: Personalized Media Matchmaker Initialized!")
     print("Type a media title (e.g., 'Arcane', 'Dune'), or type '/' to pick a command.")
     print("-" * 60)
 
@@ -293,7 +293,7 @@ async def main():
 
             lower_input = user_input.lower()
             if lower_input in {"/quit", "/exit", "exit", "quit"}:
-                print("Shutting down Second Brain. Happy reading and watching!")
+                print("Shutting down Binge-Buddy. Happy reading and watching!")
                 break
 
             if lower_input == "/help":
@@ -324,7 +324,7 @@ async def main():
             await handle_match_request(user_input)
 
         except (KeyboardInterrupt, EOFError):
-            print("\nShutting down Second Brain. Happy reading and watching!")
+            print("\nShutting down Binge-Buddy. Happy reading and watching!")
             break
         except Exception as e:
             err_str = str(e)
