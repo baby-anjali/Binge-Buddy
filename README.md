@@ -5,8 +5,8 @@ A local-first CLI that turns your personal media reviews into a "Second Brain" t
 The system leverages a multi-agent pipeline built with [Pydantic AI](https://ai.pydantic.dev/):
 1. **Researcher Agent** extracts the structural "DNA" (genres, storytelling tropes, pacing, character archetypes) of candidate media without spoilers.
 2. **LocalRAG Engine** indexes your personal Markdown reviews and retrieves past reactions to those exact tropes and genres.
-3. **Profiler Agent** analyzes your tastes specifically concerning the candidate media's themes.
-4. **Matchmaker Agent** cross-references user taste against media traits to deliver a structured compatibility score, positive/negative coincidences, and verdict.
+3. **Profiler Agent** analyzes your preferences specifically concerning the candidate media's themes.
+4. **Matchmaker Agent** cross-references user preference against media traits to deliver a structured compatibility score, positive/negative coincidences, and verdict.
 5. **Ingestor Agent** archives your unstructured thoughts into structured Markdown reviews.
 
 ---
@@ -66,8 +66,8 @@ Type `/` at the prompt to trigger the **interactive command menu**. Use the **Up
 
 | Command | Description |
 | :--- | :--- |
-| `<media title>` | Enter any title (e.g. `Arcane`, `Dune`, `Solo Leveling`) to receive an instant match verdict against your taste preferences. |
-| `/review [text]` | Ingest free-form thoughts into your centralized taste memory (updating liked & disliked tropes). |
+| `<media title>` | Enter any title with its type of media (e.g. `Arcane`, `Dune`, `Solo Leveling`) to receive an instant match verdict against your preference preferences. |
+| `/review [text]` | Ingest free-form thoughts into your centralized preference memory (updating liked & disliked tropes). |
 | `/list` | List all media titles currently logged in your history. |
 | `/help` | Display interactive CLI help and available options. |
 | `/quit` | Gracefully exit the CLI. |
@@ -82,7 +82,7 @@ You can add a review in two convenient ways:
 /review I loved the fast pacing and clever protagonist in Omniscient Reader, but the side characters needed more screen time. 5/5.
 ```
 
-The Ingestor extracts structured likes, dislikes, title, and rating, merges them directly into your consolidated taste knowledge base (`data/preferences.json`), and archives the formatted review into the designated media category Markdown file:
+The Ingestor extracts structured likes, dislikes, title, and rating, merges them directly into your consolidated preference knowledge base (`data/preferences.json`), and archives the formatted review into the designated media category Markdown file:
 * **Movies:** `data/movies.md`
 * **Shows & Series:** `data/shows.md`
 * **Manhwa, Manga & Anime:** `data/manhwa.md`
@@ -107,7 +107,7 @@ flowchart TD
 
 ---
 
-## Taste Data Format
+## Preferences Data Format
 
 Your preferences are consolidated in `data/preferences.json`:
 
@@ -164,7 +164,7 @@ The suite validates:
 ├── rag.py                  # Token-based LocalRAG engine with stopword filtration
 ├── guardrails.py           # Regex-based PII redaction filter
 ├── evaluate.py             # Automated test suite (7 test suites)
-└── data/                   # Categorized review archives & taste store
+└── data/                   # Categorized review archives & preference store
     ├── preferences.json    # Consolidated likes, dislikes & history
     ├── movies.md           # Movie reviews
     ├── shows.md            # TV & series reviews
