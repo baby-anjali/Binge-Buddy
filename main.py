@@ -1,7 +1,11 @@
 import asyncio
 import os
 import re
+import warnings
 from pathlib import Path
+
+# Suppress harmless upstream syntax warnings from google.genai in Python 3.15
+warnings.filterwarnings("ignore", category=SyntaxWarning, module="google.genai")
 
 # Disable noisy banner if not explicitly opted in
 os.environ.setdefault("PYDANTIC_AI_NO_BANNER", "1")

@@ -1,7 +1,12 @@
 import os
+import warnings
 from dotenv import load_dotenv
 
-# Ensure Google GenAI uses v1beta for function calling and structured outputs
+# Suppress harmless upstream syntax warnings from google.genai in Python 3.15
+warnings.filterwarnings("ignore", category=SyntaxWarning, module="google.genai")
+
+# Suppress Pydantic AI ASCII banner and ensure v1beta for function calling
+os.environ.setdefault("PYDANTIC_AI_NO_BANNER", "1")
 os.environ.setdefault("GOOGLE_GENAI_API_VERSION", "v1beta")
 
 # Load env vars immediately to ensure API keys are accessible
