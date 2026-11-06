@@ -6,6 +6,16 @@ Pydantic schemas, offline agent pipeline, and slash command auto-completion.
 
 import sys
 import os
+from pathlib import Path
+
+# Automatically switch to project virtualenv if run with global python3
+_venv_python = Path(__file__).resolve().parent / ".venv" / "bin" / "python"
+if _venv_python.exists() and sys.executable != str(_venv_python):
+    try:
+        import pydantic_ai
+    except ModuleNotFoundError:
+        os.execv(str(_venv_python), [str(_venv_python)] + sys.argv)
+
 import asyncio
 
 os.environ.setdefault("GOOGLE_GENAI_API_VERSION", "v1beta")

@@ -1,8 +1,18 @@
-import asyncio
+import sys
 import os
+from pathlib import Path
+
+# Automatically switch to project virtualenv if run with global python3
+_venv_python = Path(__file__).resolve().parent / ".venv" / "bin" / "python"
+if _venv_python.exists() and sys.executable != str(_venv_python):
+    try:
+        import pydantic_ai
+    except ModuleNotFoundError:
+        os.execv(str(_venv_python), [str(_venv_python)] + sys.argv)
+
+import asyncio
 import re
 import warnings
-from pathlib import Path
 
 # Suppress harmless upstream syntax warnings from google.genai in Python 3.15
 warnings.filterwarnings("ignore", category=SyntaxWarning, module="google.genai")

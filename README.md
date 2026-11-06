@@ -142,6 +142,15 @@ Run the automated test suite:
 python evaluate.py
 ```
 
+```Standard virtual environment activation
+source .venv/bin/activate
+python evaluate.py
+```
+
+```Using uv
+uv run evaluate.py
+```                     
+
 The suite validates:
 1. **PII Sanitization Guardrail:** Verifies that international and formatted phone numbers, emails, and usernames are scrubbed while preserving benign numbers.
 2. **LocalRAG Ingestion & Retrieval:** Tests keyword tokenization, stopword removal, and trope overlap scoring.
