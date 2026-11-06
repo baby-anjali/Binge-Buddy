@@ -9,6 +9,13 @@ echo "🔎 Checking code standards and linting..."
 # 1. Check Python linting and formatting via Ruff
 if [ -f ".venv/bin/ruff" ]; then
     RUFF_BIN=".venv/bin/ruff"
+elif command -v ruff >/dev/null 2>&1; then
+    RUFF_BIN="ruff"
+else
+    RUFF_BIN=""
+fi
+
+if [ -n "$RUFF_BIN" ]; then
     echo "  • Checking Python with Ruff..."
     "$RUFF_BIN" check .
     "$RUFF_BIN" format --check .

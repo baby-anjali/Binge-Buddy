@@ -9,6 +9,13 @@ echo "🎨 Formatting codebase..."
 # 1. Format and fix Python code via Ruff
 if [ -f ".venv/bin/ruff" ]; then
     RUFF_BIN=".venv/bin/ruff"
+elif command -v ruff >/dev/null 2>&1; then
+    RUFF_BIN="ruff"
+else
+    RUFF_BIN=""
+fi
+
+if [ -n "$RUFF_BIN" ]; then
     echo "  • Formatting Python with Ruff..."
     "$RUFF_BIN" format .
     "$RUFF_BIN" check --fix .
