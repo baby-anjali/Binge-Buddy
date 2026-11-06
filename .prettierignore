@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+.idea/
+.git/
+node_modules/
+.mypy_cache/
+.ruff_cache/

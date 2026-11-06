@@ -1,8 +1,9 @@
 # Personalized Media Matchmaker AI (Second Brain)
 
-A local-first CLI that turns your personal media reviews into a "Second Brain" to match you with books, novels, shows, movies, anime, and manhwa. 
+A local-first CLI that turns your personal media reviews into a "Second Brain" to match you with books, novels, shows, movies, anime, and manhwa.
 
 The system leverages a multi-agent pipeline built with [Pydantic AI](https://ai.pydantic.dev/):
+
 1. **Researcher Agent** extracts the structural "DNA" (genres, storytelling tropes, pacing, character archetypes) of candidate media without spoilers.
 2. **LocalRAG Engine** indexes your personal Markdown reviews and retrieves past reactions to those exact tropes and genres.
 3. **Profiler Agent** analyzes your preferences specifically concerning the candidate media's themes.
@@ -54,7 +55,13 @@ GOOGLE_GENAI_API_VERSION=v1beta
 
 ## CLI Usage
 
-Activate the virtual environment and launch the CLI:
+You can launch the CLI using the convenience script:
+
+```bash
+./scripts/run.sh
+```
+
+Or activate the virtual environment directly:
 
 ```bash
 source .venv/bin/activate
@@ -65,17 +72,18 @@ python main.py
 
 Type `/` at the prompt to trigger the **interactive command menu**. Use the **Up and Down arrow keys** to highlight a command and press **Enter** or **Tab** to select:
 
-| Command | Description |
-| :--- | :--- |
-| `<media title>` | Enter any title with its type of media (e.g. `Arcane`, `Dune`, `Solo Leveling`) to receive an instant match verdict against your preference preferences. |
-| `/review [text]` | Ingest free-form thoughts into your centralized preference memory (updating liked & disliked tropes). |
-| `/list` | List all media titles currently logged in your history. |
-| `/help` | Display interactive CLI help and available options. |
-| `/quit` | Gracefully exit the CLI. |
+| Command          | Description                                                                                                                                              |
+| :--------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `<media title>`  | Enter any title with its type of media (e.g. `Arcane`, `Dune`, `Solo Leveling`) to receive an instant match verdict against your preference preferences. |
+| `/review [text]` | Ingest free-form thoughts into your centralized preference memory (updating liked & disliked tropes).                                                    |
+| `/list`          | List all media titles currently logged in your history.                                                                                                  |
+| `/help`          | Display interactive CLI help and available options.                                                                                                      |
+| `/quit`          | Gracefully exit the CLI.                                                                                                                                 |
 
 ### Adding a Review
 
 You can add a review in two convenient ways:
+
 1. **Slash Command:** Type `/review [text]` (or just `/review` and enter your thoughts when prompted).
 2. **Natural Input:** Simply write your review naturally (e.g., `Jailer: Great story and unexpected twists, but too violent. Rating: 3/5`). The system automatically detects review patterns and routes them to the Ingestor.
 
@@ -84,10 +92,11 @@ You can add a review in two convenient ways:
 ```
 
 The Ingestor extracts structured likes, dislikes, title, and rating, merges them directly into your consolidated preference knowledge base (`data/preferences.json`), and archives the formatted review into the designated media category Markdown file:
-* **Movies:** `data/movies.md`
-* **Shows & Series:** `data/shows.md`
-* **Manhwa, Manga & Anime:** `data/manhwa.md`
-* **Novels & Books:** `data/novels.md`
+
+- **Movies:** `data/movies.md`
+- **Shows & Series:** `data/shows.md`
+- **Manhwa, Manga & Anime:** `data/manhwa.md`
+- **Novels & Books:** `data/novels.md`
 
 ---
 
@@ -154,13 +163,40 @@ python evaluate.py
 
 ```Using uv
 uv run evaluate.py
-```                     
+```
 
 The suite validates:
+
 1. **PII Sanitization Guardrail:** Verifies that international and formatted phone numbers, emails, and usernames are scrubbed while preserving benign numbers.
 2. **LocalRAG Ingestion & Retrieval:** Tests keyword tokenization, stopword removal, and trope overlap scoring.
 3. **Pydantic Schemas:** Asserts model validation and constraint bounds for `MediaReview`, `MediaResearch`, and `MatchVerdict`.
 4. **Offline Agent Pipeline:** Simulates end-to-end execution of Ingestor and Matchmaker agents using Pydantic AI's offline `TestModel` without requiring network access or API credentials.
+
+---
+
+## Developer Scripts & Git Hooks
+
+A full suite of executable helper scripts is provided in `scripts/`:
+
+| Script                     | Purpose                                                          |
+| :------------------------- | :--------------------------------------------------------------- |
+| `./scripts/run.sh`         | Launch the Second Brain CLI                                      |
+| `./scripts/test.sh`        | Run the complete automated test suite (`evaluate.py`)            |
+| `./scripts/typecheck.sh`   | Run Mypy static type verification across all Python files        |
+| `./scripts/format.sh`      | Auto-format Python (Ruff) and Markdown/JSON (Prettier)           |
+| `./scripts/lint.sh`        | Verify formatting and code standards without modifying files     |
+| `./scripts/setup_hooks.sh` | Install Git `pre-commit` and `pre-push` hooks into `.git/hooks/` |
+
+### Git Hooks Integration
+
+- **`pre-commit`:** Automatically runs `format.sh` and `lint.sh` to fix Prettier/Ruff formatting and re-stage files before committing.
+- **`pre-push`:** Runs `typecheck.sh` and `test.sh` to block pushes if tests or types fail.
+
+To install hooks into your local repository:
+
+```bash
+./scripts/setup_hooks.sh
+```
 
 ---
 
@@ -169,15 +205,27 @@ The suite validates:
 ```
 .
 ├── README.md               # Project documentation
+├── pyproject.toml          # Ruff & Mypy tooling configuration
+├── .prettierrc             # Prettier formatting rules
+├── .prettierignore         # Prettier ignore list
 ├── requirements.txt        # Python dependencies
 ├── .env                    # Environment variables and API keys (git-ignored)
 ├── .gitignore              # Ignored files and directories
 ├── main.py                 # Non-blocking interactive CLI
 ├── agents.py               # Pydantic AI agent definitions
 ├── models.py               # Pydantic data schemas (MediaReview, MediaResearch, MatchVerdict)
-├── rag.py                  # Token-based LocalRAG engine with stopword filtration
+├── rag.py                  # Local preference store, category markdown router & research cache
 ├── guardrails.py           # Regex-based PII redaction filter
 ├── evaluate.py             # Automated test suite (9 test suites)
+├── scripts/                # Development & automation scripts
+│   ├── run.sh              # Launch CLI
+│   ├── test.sh             # Run tests
+│   ├── typecheck.sh        # Run Mypy typecheck
+│   ├── format.sh           # Auto-format with Ruff & Prettier
+│   ├── lint.sh             # Lint & style check
+│   ├── pre-commit.sh       # Pre-commit hook script
+│   ├── pre-push.sh         # Pre-push hook script
+│   └── setup_hooks.sh      # Git hook installer
 └── data/                   # Categorized review archives & preference store
     ├── preferences.json    # Consolidated likes, dislikes & history
     ├── research_cache.json # Local structural DNA cache (503 resilience)

@@ -19,3 +19,10 @@ __pycache__/
 .idea/
 .vscode/
 *.swp
+
+# Node & Prettier
+node_modules/
+
+# Linters & typecheckers
+.mypy_cache/
+.ruff_cache/

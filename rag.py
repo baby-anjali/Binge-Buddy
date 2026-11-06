@@ -1,16 +1,19 @@
 import json
 import re
 from pathlib import Path
-from typing import List, Dict, Any, Optional
-from models import MediaReview, MediaResearch
+from typing import Any
+
+from models import MediaResearch, MediaReview
+
 
 class ResearchCache:
     """Persistent local cache for media structural DNA to eliminate duplicate network calls and 503 errors."""
+
     def __init__(self, data_dir: str | Path = "data"):
         self.data_dir = Path(data_dir)
         self.data_dir.mkdir(parents=True, exist_ok=True)
         self.cache_file = self.data_dir / "research_cache.json"
-        self.cache: Dict[str, Dict[str, Any]] = {}
+        self.cache: dict[str, dict[str, Any]] = {}
         self.load()
 
     def _normalize_title(self, title: str) -> str:
@@ -30,7 +33,7 @@ class ResearchCache:
         with open(self.cache_file, "w", encoding="utf-8") as f:
             json.dump(self.cache, f, indent=2, ensure_ascii=False)
 
-    def get(self, title: str) -> Optional[MediaResearch]:
+    def get(self, title: str) -> MediaResearch | None:
         key = self._normalize_title(title)
         if key and key in self.cache:
             try:
@@ -49,6 +52,7 @@ class ResearchCache:
             self.cache[res_key] = data
         self.save()
 
+
 CATEGORY_FILES = {
     "movie": "movies.md",
     "show": "shows.md",
@@ -63,6 +67,7 @@ CATEGORY_HEADERS = {
     "novels.md": "# Novel & Book Reviews\n\nPersonal archive of novel, web novel, and book reviews.\n",
 }
 
+
 def get_media_category_filename(media_type: str) -> str:
     """Maps a media type string to its corresponding category markdown filename (movies.md, shows.md, manhwa.md, novels.md)."""
     mt = (media_type or "").lower().strip()
@@ -76,6 +81,7 @@ def get_media_category_filename(media_type: str) -> str:
         return "novels.md"
     return "other.md"
 
+
 def save_review_to_markdown(review: MediaReview, data_dir: str | Path = "data") -> Path:
     """Saves or updates a review in the media-specific markdown file (movies.md, shows.md, manhwa.md, novels.md)."""
     data_path = Path(data_dir)
@@ -85,7 +91,9 @@ def save_review_to_markdown(review: MediaReview, data_dir: str | Path = "data") 
     target_path = data_path / filename
 
     if not target_path.exists():
-        header = CATEGORY_HEADERS.get(filename, f"# {filename.replace('.md', '').capitalize()} Reviews\n\n")
+        header = CATEGORY_HEADERS.get(
+            filename, f"# {filename.replace('.md', '').capitalize()} Reviews\n\n"
+        )
         target_path.write_text(header, encoding="utf-8")
 
     current_content = target_path.read_text(encoding="utf-8")
@@ -116,21 +124,19 @@ def save_review_to_markdown(review: MediaReview, data_dir: str | Path = "data") 
     target_path.write_text(updated_content.strip() + "\n", encoding="utf-8")
     return target_path
 
+
 class PreferenceStore:
     """Manages the user's consolidated taste memory (likes, dislikes, and history)
 
     Eliminates context bloat and hallucination by storing a single consolidated
     preference knowledge base rather than dozens of separate markdown files.
     """
+
     def __init__(self, data_dir: str = "data"):
         self.data_dir = Path(data_dir)
         self.data_dir.mkdir(parents=True, exist_ok=True)
         self.pref_file = self.data_dir / "preferences.json"
-        self.data: Dict[str, Any] = {
-            "likes": [],
-            "dislikes": [],
-            "history": []
-        }
+        self.data: dict[str, Any] = {"likes": [], "dislikes": [], "history": []}
         self.load()
 
     def load(self):
@@ -149,15 +155,19 @@ class PreferenceStore:
             "likes": [
                 "Clever, strategic protagonists who use planning rather than brute strength",
                 "High stakes from the start without dragging out initial setup",
-                "Morally grey characters who make ruthless, calculated survival decisions"
+                "Morally grey characters who make ruthless, calculated survival decisions",
             ],
             "dislikes": [
                 "Supporting characters fading into the background during major solo arcs",
-                "Slow, dragging middle pacing with excessive filler"
+                "Slow, dragging middle pacing with excessive filler",
             ],
             "history": [
-                {"title": "Omniscient Reader's Viewpoint", "type": "Web Novel / Manhwa", "rating": "5/5"}
-            ]
+                {
+                    "title": "Omniscient Reader's Viewpoint",
+                    "type": "Web Novel / Manhwa",
+                    "rating": "5/5",
+                }
+            ],
         }
         self.save()
 
@@ -184,11 +194,13 @@ class PreferenceStore:
 
         history = self.data.get("history", [])
         if not any(h.get("title", "").lower() == review.title.lower() for h in history):
-            history.append({
-                "title": review.title,
-                "type": review.media_type,
-                "rating": review.rating
-            })
+            history.append(
+                {
+                    "title": review.title,
+                    "type": review.media_type,
+                    "rating": review.rating,
+                }
+            )
         self.data["history"] = history
         self.save()
         return save_review_to_markdown(review, self.data_dir)
@@ -198,15 +210,19 @@ class PreferenceStore:
         likes = self.data.get("likes", [])
         dislikes = self.data.get("dislikes", [])
 
-        likes_text = "\n".join(f"  + {item}" for item in likes) if likes else "  + None recorded yet."
-        dislikes_text = "\n".join(f"  - {item}" for item in dislikes) if dislikes else "  - None recorded yet."
+        likes_text = (
+            "\n".join(f"  + {item}" for item in likes) if likes else "  + None recorded yet."
+        )
+        dislikes_text = (
+            "\n".join(f"  - {item}" for item in dislikes) if dislikes else "  - None recorded yet."
+        )
 
         return (
             f"User Confirmed Likes (Positive Tropes & Preferences):\n{likes_text}\n\n"
             f"User Confirmed Dislikes (Negative Tropes & Dealbreakers):\n{dislikes_text}"
         )
 
-    def list_reviews(self) -> List[Dict[str, str]]:
+    def list_reviews(self) -> list[dict[str, str]]:
         return self.data.get("history", [])
 
     # Compatibility methods for backward compatibility
@@ -216,6 +232,7 @@ class PreferenceStore:
     def query(self, query_input=None, n_results=5):
         # Returns preferences context as documents
         return [self.get_preferences_context()]
+
 
 # Alias for backward compatibility
 LocalRAG = PreferenceStore

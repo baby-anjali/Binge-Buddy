@@ -4,8 +4,8 @@ Tests PII sanitization guardrails, PreferenceStore consolidation,
 Pydantic schemas, offline agent pipeline, and slash command auto-completion.
 """
 
-import sys
 import os
+import sys
 from pathlib import Path
 
 # Automatically switch to project virtualenv if run with global python3
@@ -14,21 +14,26 @@ if _venv_python.exists() and sys.executable != str(_venv_python):
     try:
         import pydantic_ai
     except ModuleNotFoundError:
-        if sys.argv and sys.argv[0] != '-c':
+        if sys.argv and sys.argv[0] != "-c":
             os.execv(str(_venv_python), [str(_venv_python)] + sys.argv)
 
 import asyncio
 
 os.environ.setdefault("GOOGLE_GENAI_API_VERSION", "v1beta")
+from prompt_toolkit.document import Document
 from pydantic_ai import Agent
 from pydantic_ai.models.test import TestModel
-from prompt_toolkit.document import Document
 
 from guardrails import sanitize_pii
-from rag import PreferenceStore, get_media_category_filename, save_review_to_markdown, ResearchCache
-from models import MediaReview, MediaResearch, MatchVerdict
 from main import SlashCommandCompleter, is_likely_review
-from agents import emergency_matchmaker_agent
+from models import MatchVerdict, MediaResearch, MediaReview
+from rag import (
+    PreferenceStore,
+    ResearchCache,
+    get_media_category_filename,
+    save_review_to_markdown,
+)
+
 
 def test_pii_sanitization():
     print("🧪 Running Test: PII Sanitization Guardrail...")
@@ -46,7 +51,7 @@ def test_pii_sanitization():
         "Reach out at +1-555-123-4567 please",
         "Direct line: +1 (555) 123-4567",
         "Number: 555.123.4567",
-        "Local 5551234567"
+        "Local 5551234567",
     ]
     for sample in phone_samples:
         result = sanitize_pii(sample)
@@ -58,6 +63,7 @@ def test_pii_sanitization():
     assert sanitize_pii(benign_text) == benign_text, "Benign numbers were incorrectly redacted"
 
     print("   ✅ PII Sanitization passed.")
+
 
 def test_preference_store():
     print("🧪 Running Test: Consolidated PreferenceStore...")
@@ -79,7 +85,7 @@ def test_preference_store():
         rating="5/5",
         liked=["Sister conflict dynamics", "Exceptional fluid animation"],
         disliked=["Long wait between seasons"],
-        verdict="Masterpiece."
+        verdict="Masterpiece.",
     )
     ps.add_review(new_rev)
     assert "Sister conflict dynamics" in ps.data["likes"]
@@ -88,12 +94,13 @@ def test_preference_store():
 
     print("   ✅ PreferenceStore consolidation passed.")
 
+
 def test_slash_command_completion():
     print("🧪 Running Test: Slash Command Auto-Completion...")
     completer = SlashCommandCompleter()
 
     # User types '/'
-    doc = Document('/', 1)
+    doc = Document("/", 1)
     completions = list(completer.get_completions(doc, None))
     assert len(completions) == 4, f"Expected 4 slash commands, got {len(completions)}"
     cmd_names = [c.text for c in completions]
@@ -103,17 +110,18 @@ def test_slash_command_completion():
     assert "/quit" in cmd_names
 
     # User types '/re'
-    doc_re = Document('/re', 2)
+    doc_re = Document("/re", 2)
     completions_re = list(completer.get_completions(doc_re, None))
     assert len(completions_re) == 1
     assert completions_re[0].text == "/review"
 
     # User types a media title (e.g. 'Arcane')
-    doc_title = Document('Arcane', 6)
+    doc_title = Document("Arcane", 6)
     completions_title = list(completer.get_completions(doc_title, None))
     assert len(completions_title) == 0, "No completions should appear for regular media titles"
 
     print("   ✅ Slash Command Auto-Completion passed.")
+
 
 def test_pydantic_schemas():
     print("🧪 Running Test: Pydantic Data Models Validation...")
@@ -126,7 +134,7 @@ def test_pydantic_schemas():
         rating="4.5/5",
         liked=["Deep political intrigue", "Epic worldbuilding"],
         disliked=["Abrupt cliffhanger ending"],
-        verdict="A visually stunning cinematic experience."
+        verdict="A visually stunning cinematic experience.",
     )
     assert review.title == "Dune"
     assert len(review.liked) == 2
@@ -138,7 +146,7 @@ def test_pydantic_schemas():
         themes_and_tropes=["Chosen one subversion", "Political intrigue"],
         pacing="Epic / Slow burn",
         character_archetypes=["Reluctant leader", "Mystic order"],
-        summary="A desert epic exploring political destiny."
+        summary="A desert epic exploring political destiny.",
     )
     assert research.title == "Dune"
 
@@ -148,12 +156,13 @@ def test_pydantic_schemas():
         recommendation="Strong Match",
         positive_coincidences=["Loves political intrigue and rich worldbuilding"],
         negative_coincidences=["Dislikes cliffhangers"],
-        verdict="Highly aligned with your preferences."
+        verdict="Highly aligned with your preferences.",
     )
     assert 0 <= verdict.match_score <= 100
     assert verdict.recommendation == "Strong Match"
 
     print("   ✅ Pydantic Schemas passed.")
+
 
 async def test_offline_agent_pipeline():
     print("🧪 Running Test: Offline Agent Execution via TestModel...")
@@ -167,11 +176,10 @@ async def test_offline_agent_pipeline():
         "rating": "4/5",
         "liked": ["Fast pacing", "Power fantasy"],
         "disliked": ["Shallow side characters"],
-        "verdict": "Fun hype read."
+        "verdict": "Fun hype read.",
     }
     test_ingestor = Agent(
-        TestModel(custom_output_args=sample_review_payload),
-        output_type=MediaReview
+        TestModel(custom_output_args=sample_review_payload), output_type=MediaReview
     )
     res_ingest = await test_ingestor.run("Process review...")
     assert isinstance(res_ingest.output, MediaReview)
@@ -184,17 +192,17 @@ async def test_offline_agent_pipeline():
         "recommendation": "Recommended",
         "positive_coincidences": ["Likes power fantasy and fast pacing"],
         "negative_coincidences": ["Dislikes weak side characters"],
-        "verdict": "Great fit for your action preferences."
+        "verdict": "Great fit for your action preferences.",
     }
     test_matchmaker = Agent(
-        TestModel(custom_output_args=sample_verdict_payload),
-        output_type=MatchVerdict
+        TestModel(custom_output_args=sample_verdict_payload), output_type=MatchVerdict
     )
     res_match = await test_matchmaker.run("Calculate match...")
     assert isinstance(res_match.output, MatchVerdict)
     assert res_match.output.match_score == 85
 
     print("   ✅ Offline Agent Pipeline passed.")
+
 
 def test_media_category_markdown_separation():
     print("🧪 Running Test: Media Category Markdown Separation...")
@@ -211,7 +219,6 @@ def test_media_category_markdown_separation():
 
     # 2. Test saving reviews into separate markdown files
     import tempfile
-    from pathlib import Path
 
     with tempfile.TemporaryDirectory() as tmpdir:
         movie_review = MediaReview(
@@ -222,7 +229,7 @@ def test_media_category_markdown_separation():
             rating="3/5",
             liked=["Story was great", "Unexpected twists"],
             disliked=["Too violent", "Felt like aura-farming"],
-            verdict="Great story and unexpected twists, but overly violent."
+            verdict="Great story and unexpected twists, but overly violent.",
         )
         saved_movie = save_review_to_markdown(movie_review, data_dir=tmpdir)
         assert saved_movie.name == "movies.md"
@@ -239,7 +246,7 @@ def test_media_category_markdown_separation():
             rating="5/5",
             liked=["Victorian steampunk aesthetic", "Praise the Fool"],
             disliked=["Slow start in volume 1"],
-            verdict="Masterclass in worldbuilding and magic systems."
+            verdict="Masterclass in worldbuilding and magic systems.",
         )
         saved_novel = save_review_to_markdown(novel_review, data_dir=tmpdir)
         assert saved_novel.name == "novels.md"
@@ -247,6 +254,7 @@ def test_media_category_markdown_separation():
         assert "## Lord of the Mysteries" in novel_text
 
     print("   ✅ Media Category Markdown Separation passed.")
+
 
 def test_smart_review_detection():
     print("🧪 Running Test: Smart Review Detection Guardrail...")
@@ -257,7 +265,12 @@ def test_smart_review_detection():
 
     # Other reviews without slash command
     assert is_likely_review("Arcane: Incredible animation and emotional depth. 5/5") is True
-    assert is_likely_review("Dune: Slow burn pacing with incredible visuals, but ending was abrupt. My rating: 4/5") is True
+    assert (
+        is_likely_review(
+            "Dune: Slow burn pacing with incredible visuals, but ending was abrupt. My rating: 4/5"
+        )
+        is True
+    )
 
     # Plain media title searches (must NOT be treated as reviews)
     assert is_likely_review("Jailer") is False
@@ -267,6 +280,7 @@ def test_smart_review_detection():
     assert is_likely_review("") is False
 
     print("   ✅ Smart Review Detection passed.")
+
 
 def test_research_cache():
     print("🧪 Running Test: Local Research Cache (503 Resilience)...")
@@ -283,7 +297,7 @@ def test_research_cache():
             themes_and_tropes=["Sister conflict dynamics", "Tragic corruption"],
             pacing="Fast-paced",
             character_archetypes=["Tragic antihero", "Idealistic inventor"],
-            summary="A steampunk fantasy following two sisters."
+            summary="A steampunk fantasy following two sisters.",
         )
         cache.put("Arcane", sample_research)
 
@@ -306,6 +320,7 @@ def test_research_cache():
 
     print("   ✅ Local Research Cache passed.")
 
+
 async def test_emergency_matchmaker_pipeline():
     print("🧪 Running Test: Emergency Single-Pass Matchmaker Execution via TestModel...")
     sample_verdict_payload = {
@@ -314,11 +329,10 @@ async def test_emergency_matchmaker_pipeline():
         "recommendation": "Strong Match",
         "positive_coincidences": ["Fluid animation", "Sister dynamics"],
         "negative_coincidences": [],
-        "verdict": "Exceptional fit for your preferences."
+        "verdict": "Exceptional fit for your preferences.",
     }
     test_emergency = Agent(
-        TestModel(custom_output_args=sample_verdict_payload),
-        output_type=MatchVerdict
+        TestModel(custom_output_args=sample_verdict_payload), output_type=MatchVerdict
     )
     res = await test_emergency.run("Candidate: Arcane")
     assert isinstance(res.output, MatchVerdict)
@@ -326,6 +340,7 @@ async def test_emergency_matchmaker_pipeline():
     assert res.output.recommendation == "Strong Match"
 
     print("   ✅ Emergency Single-Pass Matchmaker passed.")
+
 
 def main():
     print("=" * 60)
@@ -353,6 +368,7 @@ def main():
     except Exception as e:
         print(f"\n❌ Unexpected Failure: {e}", file=sys.stderr)
         return 1
+
 
 if __name__ == "__main__":
     sys.exit(main())

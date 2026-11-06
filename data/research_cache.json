@@ -1,0 +1,120 @@
+{
+  "arcane": {
+    "title": "Arcane",
+    "media_type": "Animated Show",
+    "genres": ["Animation", "Action", "Sci-Fi", "Steampunk"],
+    "themes_and_tropes": [
+      "Sister conflict dynamics",
+      "Class disparity and political intrigue",
+      "Tragic corruption arc",
+      "Fluid kinetic animation"
+    ],
+    "pacing": "Fast-paced and emotionally charged",
+    "character_archetypes": ["Tragic antihero", "Idealistic inventor", "Ruthless crime boss"],
+    "summary": "A visually breathtaking steampunk fantasy examining sisters divided across a warring technological society."
+  },
+  "jailer": {
+    "title": "Jailer",
+    "media_type": "Movie",
+    "genres": ["Action", "Crime", "Thriller"],
+    "themes_and_tropes": [
+      "Retired badass forced back into action",
+      "Family betrayal and dark secrets",
+      "Massive aura moments and slow-motion confrontations",
+      "Unexpected plot twists"
+    ],
+    "pacing": "High-octane with explosive reveals",
+    "character_archetypes": ["Stoic retired jailer", "Corrupt heir", "Loyal underworld allies"],
+    "summary": "A retired prison warden re-enters the criminal underworld when his family is endangered, unleashing a web of calculated vengeance."
+  },
+  "omniscient readers viewpoint": {
+    "title": "Omniscient Reader's Viewpoint",
+    "media_type": "Web Novel / Manhwa",
+    "genres": ["Action", "Apocalyptic Fantasy", "Supernatural"],
+    "themes_and_tropes": [
+      "Clever strategic protagonist",
+      "Survival game and scenarios",
+      "Constellation audience meta-commentary",
+      "Morally grey calculated survival"
+    ],
+    "pacing": "Fast-paced with high immediate stakes",
+    "character_archetypes": ["Calculating reader protagonist", "Indomitable regressor partner"],
+    "summary": "The only reader of an obscure apocalyptic novel must use his encyclopedic future knowledge to survive when the story becomes reality."
+  },
+  "series carrie": {
+    "title": "Carrie",
+    "media_type": "Novel",
+    "genres": ["Horror", "Thriller", "Supernatural"],
+    "themes_and_tropes": [
+      "Outcast protagonist",
+      "Revenge narrative",
+      "Bullying and social cruelty",
+      "Coming-of-age (dark)"
+    ],
+    "pacing": "Deliberate build-up to explosive climax",
+    "character_archetypes": [
+      "The tormented outcast",
+      "The zealous extremist",
+      "The bully collective"
+    ],
+    "summary": "Stephen King's \"Carrie\" is a seminal horror novel that meticulously builds tension through its portrayal of an ostracized teenage girl with nascent telekinetic powers. The narrative explores themes of social cruelty, religious fundamentalism, and the devastating consequences of unchecked torment, culminating in a violent catharsis. It features a deliberate pacing that amplifies the psychological pressure on its protagonist, leading to an explosive and unforgettable climax. Character archetypes include the deeply tormented outcast, the religiously fanatical parent, and a collective of high school bullies, all contributing to a grim coming-of-age story."
+  },
+  "carrie": {
+    "title": "Carrie",
+    "media_type": "Novel",
+    "genres": ["Horror", "Thriller", "Drama"],
+    "themes_and_tropes": [
+      "Social outcast",
+      "Bullying and revenge",
+      "Supernatural abilities as metaphor",
+      "Religious fanaticism",
+      "Coming-of-age challenges"
+    ],
+    "pacing": "Deliberate, with escalating tension",
+    "character_archetypes": [
+      "The tormented protagonist",
+      "The abusive parent",
+      "The cruel bully",
+      "The sympathetic outsider"
+    ],
+    "summary": "Stephen King's 'Carrie' is a horror novel exploring the psychological and social torment of its protagonist. It delves into themes of bullying, religious extremism, and the dangerous potential of repressed power. The narrative unfolds with a deliberate pace, steadily building tension towards a climactic release. Key character archetypes include the severely isolated and abused protagonist, her fanatically religious mother, and the various tormentors and a few sympathetic figures at school. The story uses supernatural abilities as a powerful metaphor for adolescent rage and the consequences of extreme societal rejection."
+  },
+  "re": {
+    "title": "Incomplete Title",
+    "media_type": "Unknown",
+    "genres": ["Unknown"],
+    "themes_and_tropes": ["User provided an incomplete title"],
+    "pacing": "Unknown",
+    "character_archetypes": ["Unknown"],
+    "summary": "Please provide the full title of the media you wish for me to analyze. If possible, also specify the media type (e.g., Book, Movie, Show, Anime, Manga, Manhwa) to ensure the most accurate analysis."
+  },
+  "incomplete title": {
+    "title": "Incomplete Title",
+    "media_type": "Unknown",
+    "genres": ["Unknown"],
+    "themes_and_tropes": ["User provided an incomplete title"],
+    "pacing": "Unknown",
+    "character_archetypes": ["Unknown"],
+    "summary": "Please provide the full title of the media you wish for me to analyze. If possible, also specify the media type (e.g., Book, Movie, Show, Anime, Manga, Manhwa) to ensure the most accurate analysis."
+  },
+  "serie carrie": {
+    "title": "Carrie",
+    "media_type": "Novel",
+    "genres": ["Horror", "Thriller", "Drama"],
+    "themes_and_tropes": [
+      "Social outcast",
+      "Bullying and revenge",
+      "Supernatural abilities as metaphor",
+      "Religious fanaticism",
+      "Coming-of-age challenges"
+    ],
+    "pacing": "Deliberate, with escalating tension",
+    "character_archetypes": [
+      "The tormented protagonist",
+      "The abusive parent",
+      "The cruel bully",
+      "The sympathetic outsider"
+    ],
+    "summary": "Stephen King's 'Carrie' is a horror novel exploring the psychological and social torment of its protagonist. It delves into themes of bullying, religious extremism, and the dangerous potential of repressed power. The narrative unfolds with a deliberate pace, steadily building tension towards a climactic release. Key character archetypes include the severely isolated and abused protagonist, her fanatically religious mother, and the various tormentors and a few sympathetic figures at school. The story uses supernatural abilities as a powerful metaphor for adolescent rage and the consequences of extreme societal rejection."
+  }
+}

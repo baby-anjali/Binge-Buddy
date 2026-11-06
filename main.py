@@ -1,5 +1,5 @@
-import sys
 import os
+import sys
 from pathlib import Path
 
 # Automatically switch to project virtualenv if run with global python3
@@ -8,7 +8,7 @@ if _venv_python.exists() and sys.executable != str(_venv_python):
     try:
         import pydantic_ai
     except ModuleNotFoundError:
-        if sys.argv and sys.argv[0] != '-c':
+        if sys.argv and sys.argv[0] != "-c":
             os.execv(str(_venv_python), [str(_venv_python)] + sys.argv)
 
 import asyncio
@@ -28,16 +28,17 @@ from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.history import InMemoryHistory
 
 from agents import (
-    researcher_agent,
-    matchmaker_agent,
-    ingestor_agent,
     emergency_matchmaker_agent,
+    ingestor_agent,
+    matchmaker_agent,
     rag,
-    run_agent_with_fallback
+    researcher_agent,
+    run_agent_with_fallback,
 )
 from guardrails import sanitize_pii
-from models import MediaReview, MediaResearch, MatchVerdict
-from rag import save_review_to_markdown, get_media_category_filename, research_cache
+from models import MatchVerdict, MediaResearch, MediaReview
+from rag import research_cache
+
 
 def is_likely_review(text: str) -> bool:
     """Detects whether user input looks like a review rather than a simple title lookup."""
@@ -46,19 +47,42 @@ def is_likely_review(text: str) -> bool:
         return False
 
     # Check for rating formats (e.g. "3/5", "4.5/5", "8/10", "3 stars", "rating: 3/5")
-    has_rating = bool(re.search(r'\b(?:\d(?:\.\d)?\s*/\s*(?:5|10)|\d(?:\.\d)?\s*stars?|rating\s*[:=]?\s*\d)\b', clean, re.IGNORECASE))
+    has_rating = bool(
+        re.search(
+            r"\b(?:\d(?:\.\d)?\s*/\s*(?:5|10)|\d(?:\.\d)?\s*stars?|rating\s*[:=]?\s*\d)\b",
+            clean,
+            re.IGNORECASE,
+        )
+    )
 
     # Common review keywords
     review_keywords = [
-        "my rating", "i liked", "i disliked", "what i liked", "what i disliked",
-        "too violent", "slow pacing", "fast pacing", "plot twist", "felt like",
-        "movie was", "show was", "anime was", "manhwa was", "book was", "novel was",
-        "aura-farming", "aura farming", "cinematography", "worldbuilding", "soundtrack"
+        "my rating",
+        "i liked",
+        "i disliked",
+        "what i liked",
+        "what i disliked",
+        "too violent",
+        "slow pacing",
+        "fast pacing",
+        "plot twist",
+        "felt like",
+        "movie was",
+        "show was",
+        "anime was",
+        "manhwa was",
+        "book was",
+        "novel was",
+        "aura-farming",
+        "aura farming",
+        "cinematography",
+        "worldbuilding",
+        "soundtrack",
     ]
     has_keywords = any(kw in clean.lower() for kw in review_keywords)
 
     # Title with colon followed by substantial review body: "Title: Body..."
-    has_colon_review = bool(re.match(r'^[^:\n]{2,35}:\s+.{25,}', clean, re.DOTALL))
+    has_colon_review = bool(re.match(r"^[^:\n]{2,35}:\s+.{25,}", clean, re.DOTALL))
 
     if has_rating and len(clean) > 25:
         return True
@@ -68,6 +92,7 @@ def is_likely_review(text: str) -> bool:
         return True
 
     return False
+
 
 HELP_MESSAGE = """
 Available Commands:
@@ -79,6 +104,7 @@ Available Commands:
 
 Tip: Type '/' to open the interactive command menu, then use the Up & Down arrows to select.
 """
+
 
 class SlashCommandCompleter(Completer):
     COMMANDS = [
@@ -93,12 +119,8 @@ class SlashCommandCompleter(Completer):
         if text.startswith("/"):
             for cmd, desc in self.COMMANDS:
                 if cmd.startswith(text.lower()):
-                    yield Completion(
-                        cmd,
-                        start_position=-len(text),
-                        display=cmd,
-                        display_meta=desc
-                    )
+                    yield Completion(cmd, start_position=-len(text), display=cmd, display_meta=desc)
+
 
 def is_api_key_configured() -> bool:
     """Checks whether a non-placeholder API key is set for Gemini or the active provider."""
@@ -107,9 +129,10 @@ def is_api_key_configured() -> bool:
         "your_gemini_api_key_here",
         "your_api_key_here",
         "placeholder",
-        ""
+        "",
     }
     return gemini_key.strip().lower() not in placeholder_values
+
 
 def render_verdict(verdict: MatchVerdict):
     bar_length = 20
@@ -135,6 +158,7 @@ def render_verdict(verdict: MatchVerdict):
     print(f"   {verdict.verdict}")
     print("=" * 60)
 
+
 async def handle_match_request(user_input: str):
     if not is_api_key_configured():
         print(
@@ -150,13 +174,17 @@ async def handle_match_request(user_input: str):
     # 1. Check local research cache first (Instant, 0 network, immune to 503 errors)
     cached_research = research_cache.get(clean_input)
     if cached_research:
-        print(f"\n⚡ [Local Cache Hit]: Retrieved structural DNA for '{cached_research.title}' from Second Brain memory!")
+        print(
+            f"\n⚡ [Local Cache Hit]: Retrieved structural DNA for '{cached_research.title}' from Second Brain memory!"
+        )
         research = cached_research
     else:
         # Cache miss: Run Researcher agent with resilient retry
         print(f"\n🔬 [Researcher] Analyzing structural DNA for '{clean_input}' (No Spoilers)...")
         try:
-            research_res = await run_agent_with_fallback(researcher_agent, f"Analyze structural DNA for: {clean_input}")
+            research_res = await run_agent_with_fallback(
+                researcher_agent, f"Analyze structural DNA for: {clean_input}"
+            )
             research = research_res.output
             research_cache.put(clean_input, research)
         except Exception as e:
@@ -169,7 +197,9 @@ async def handle_match_request(user_input: str):
                 f"{user_preferences_context}\n\n"
                 "Directly evaluate user compatibility against this media and produce a structured MatchVerdict."
             )
-            verdict_res = await run_agent_with_fallback(emergency_matchmaker_agent, emergency_prompt)
+            verdict_res = await run_agent_with_fallback(
+                emergency_matchmaker_agent, emergency_prompt
+            )
             render_verdict(verdict_res.output)
             return
 
@@ -188,6 +218,7 @@ async def handle_match_request(user_input: str):
     verdict_res = await run_agent_with_fallback(matchmaker_agent, matchmaker_prompt)
     render_verdict(verdict_res.output)
 
+
 async def show_list():
     reviews = rag.list_reviews()
     if not reviews:
@@ -198,8 +229,11 @@ async def show_list():
     print(f"📚 MEDIA HISTORY ({len(reviews)})")
     print("=" * 60)
     for idx, r in enumerate(reviews, 1):
-        print(f" {idx}. {r.get('title', 'Unknown')} [{r.get('type', 'Media')}] — Rating: {r.get('rating', 'N/A')}")
+        print(
+            f" {idx}. {r.get('title', 'Unknown')} [{r.get('type', 'Media')}] — Rating: {r.get('rating', 'N/A')}"
+        )
     print("=" * 60)
+
 
 async def save_new_review(raw_text: str, session: PromptSession):
     if not is_api_key_configured():
@@ -227,7 +261,7 @@ async def save_new_review(raw_text: str, session: PromptSession):
             themes_and_tropes=review.liked + review.disliked,
             pacing="Extracted from review history",
             character_archetypes=[],
-            summary=review.verdict
+            summary=review.verdict,
         )
         research_cache.put(review.title, baseline_research)
 
@@ -235,6 +269,7 @@ async def save_new_review(raw_text: str, session: PromptSession):
     print(f"   📂 Archived in: data/{target_path.name}")
     print(f"   + Liked added: {', '.join(review.liked)}")
     print(f"   - Disliked added: {', '.join(review.disliked)}")
+
 
 async def main():
     print("🧠 Second Brain: Personalized Media Matchmaker Initialized!")
@@ -245,7 +280,7 @@ async def main():
     session = PromptSession(
         history=InMemoryHistory(),
         completer=SlashCommandCompleter(),
-        complete_while_typing=True
+        complete_while_typing=True,
     )
 
     while True:
@@ -270,15 +305,19 @@ async def main():
                 continue
 
             if lower_input == "/review" or lower_input.startswith("/review "):
-                review_content = user_input[len("/review"):].strip()
+                review_content = user_input[len("/review") :].strip()
                 if not review_content:
-                    review_content = (await session.prompt_async("Enter your review thoughts: ")).strip()
+                    review_content = (
+                        await session.prompt_async("Enter your review thoughts: ")
+                    ).strip()
                 if review_content:
                     await save_new_review(review_content, session)
                 continue
 
             if is_likely_review(user_input):
-                print("\n📝 [Detected Review]: Processing your review and archiving into category markdown...")
+                print(
+                    "\n📝 [Detected Review]: Processing your review and archiving into category markdown..."
+                )
                 await save_new_review(user_input, session)
                 continue
 
@@ -301,13 +340,18 @@ async def main():
                     "Please open '.env' and set GEMINI_API_KEY with your key from Google AI Studio:\n"
                     "👉 https://aistudio.google.com/"
                 )
-            elif any(k in err_str.lower() for k in ["503", "high demand", "unavailable", "resource_exhausted"]):
+            elif any(
+                k in err_str.lower()
+                for k in ["503", "high demand", "unavailable", "resource_exhausted"]
+            ):
                 print(
                     "\n❌ [Service Busy]: Google Gemini is experiencing temporary high demand (503 Service Unavailable).\n"
                     "   • This spike is usually temporary. Please try again in a few moments.\n"
                     "   • Tip: Primary model is 'google:gemini-3.8-flash' with automatic fallback to 'google:gemini-2.5-flash'."
                 )
-            elif "404" in err_str and ("no longer available" in err_str.lower() or "not found" in err_str.lower()):
+            elif "404" in err_str and (
+                "no longer available" in err_str.lower() or "not found" in err_str.lower()
+            ):
                 print(
                     "\n❌ [Model Deprecated / Not Found]: The configured Gemini model is no longer available.\n"
                     "   • Update 'LLM_MODEL=google:gemini-2.5-flash' in your '.env' file."
@@ -320,6 +364,7 @@ async def main():
             else:
                 print(f"\n❌ [Error]: {err_str}")
             print("Try again or type '/quit' to exit.")
+
 
 if __name__ == "__main__":
     asyncio.run(main())
