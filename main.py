@@ -8,7 +8,8 @@ if _venv_python.exists() and sys.executable != str(_venv_python):
     try:
         import pydantic_ai
     except ModuleNotFoundError:
-        os.execv(str(_venv_python), [str(_venv_python)] + sys.argv)
+        if sys.argv and sys.argv[0] != '-c':
+            os.execv(str(_venv_python), [str(_venv_python)] + sys.argv)
 
 import asyncio
 import re
@@ -26,10 +27,17 @@ from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.history import InMemoryHistory
 
-from agents import researcher_agent, matchmaker_agent, ingestor_agent, rag, run_agent_with_fallback
+from agents import (
+    researcher_agent,
+    matchmaker_agent,
+    ingestor_agent,
+    emergency_matchmaker_agent,
+    rag,
+    run_agent_with_fallback
+)
 from guardrails import sanitize_pii
 from models import MediaReview, MediaResearch, MatchVerdict
-from rag import save_review_to_markdown, get_media_category_filename
+from rag import save_review_to_markdown, get_media_category_filename, research_cache
 
 def is_likely_review(text: str) -> bool:
     """Detects whether user input looks like a review rather than a simple title lookup."""
@@ -139,10 +147,31 @@ async def handle_match_request(user_input: str):
 
     clean_input = sanitize_pii(user_input)
 
-    # 1. Researcher: Analyze structural DNA without spoilers
-    print(f"\n🔬 [Researcher] Analyzing structural DNA for '{clean_input}' (No Spoilers)...")
-    research_res = await run_agent_with_fallback(researcher_agent, f"Analyze structural DNA for: {clean_input}")
-    research: MediaResearch = research_res.output
+    # 1. Check local research cache first (Instant, 0 network, immune to 503 errors)
+    cached_research = research_cache.get(clean_input)
+    if cached_research:
+        print(f"\n⚡ [Local Cache Hit]: Retrieved structural DNA for '{cached_research.title}' from Second Brain memory!")
+        research = cached_research
+    else:
+        # Cache miss: Run Researcher agent with resilient retry
+        print(f"\n🔬 [Researcher] Analyzing structural DNA for '{clean_input}' (No Spoilers)...")
+        try:
+            research_res = await run_agent_with_fallback(researcher_agent, f"Analyze structural DNA for: {clean_input}")
+            research = research_res.output
+            research_cache.put(clean_input, research)
+        except Exception as e:
+            # Emergency Single-Pass Matchmaking: If Researcher failed after all retries, do direct matching in 1 call
+            print(f"\n🚨 [Emergency Mode]: Google API high demand prevented 2-step analysis ({e}).")
+            print("   Activating Single-Pass Direct Matchmaker to complete your request...")
+            user_preferences_context = rag.get_preferences_context()
+            emergency_prompt = (
+                f"Candidate Media Title: {clean_input}\n\n"
+                f"{user_preferences_context}\n\n"
+                "Directly evaluate user compatibility against this media and produce a structured MatchVerdict."
+            )
+            verdict_res = await run_agent_with_fallback(emergency_matchmaker_agent, emergency_prompt)
+            render_verdict(verdict_res.output)
+            return
 
     print(f"   Format: {research.media_type} | Genres: {', '.join(research.genres)}")
     print(f"   Themes/Tropes: {', '.join(research.themes_and_tropes[:4])}")
@@ -187,6 +216,20 @@ async def save_new_review(raw_text: str, session: PromptSession):
 
     # Update the central preference store and archive in category markdown (movies.md, shows.md, manhwa.md, novels.md)
     target_path = rag.add_review(review)
+
+    # Pre-populate research cache with review traits so future matches on this title are instant
+    if not research_cache.get(review.title):
+        genres_list = [g.strip() for g in review.genre.split(",") if g.strip()]
+        baseline_research = MediaResearch(
+            title=review.title,
+            media_type=review.media_type,
+            genres=genres_list or ["General"],
+            themes_and_tropes=review.liked + review.disliked,
+            pacing="Extracted from review history",
+            character_archetypes=[],
+            summary=review.verdict
+        )
+        research_cache.put(review.title, baseline_research)
 
     print(f"\n✅ Updated your taste preferences based on '{review.title}'!")
     print(f"   📂 Archived in: data/{target_path.name}")
@@ -262,7 +305,7 @@ async def main():
                 print(
                     "\n❌ [Service Busy]: Google Gemini is experiencing temporary high demand (503 Service Unavailable).\n"
                     "   • This spike is usually temporary. Please try again in a few moments.\n"
-                    "   • Tip: You can configure 'LLM_MODEL=google:gemini-2.5-flash' in '.env' for reliable availability."
+                    "   • Tip: Primary model is 'google:gemini-3.8-flash' with automatic fallback to 'google:gemini-2.5-flash'."
                 )
             elif "404" in err_str and ("no longer available" in err_str.lower() or "not found" in err_str.lower()):
                 print(

@@ -40,8 +40,9 @@ Create a `.env` file in the project directory:
 # Google Gemini API Key from Google AI Studio (https://aistudio.google.com/)
 GEMINI_API_KEY=your_gemini_api_key_here
 
-# Optional: Override the model (defaults to google:gemini-2.5-flash)
-LLM_MODEL=google:gemini-2.5-flash
+# Primary model (defaults to google:gemini-3.8-flash)
+LLM_MODEL=google:gemini-3.8-flash
+LLM_FALLBACK_MODEL=google:gemini-2.5-flash
 
 # Required for function calling and structured outputs with Google GenAI
 GOOGLE_GENAI_API_VERSION=v1beta
@@ -94,16 +95,20 @@ The Ingestor extracts structured likes, dislikes, title, and rating, merges them
 
 ```mermaid
 flowchart TD
-    User["User Query (e.g. 'Arcane')"] --> Researcher["1. Researcher Agent\n(Extracts Tropes, Genres, Pacing)"]
-    Researcher -->|"Structural DNA"| Matchmaker["2. Matchmaker Agent\n(Cross-references with Preferences)"]
+    User["User Query (e.g. 'Arcane')"] --> CacheCheck{"Local Research Cache?\ndata/research_cache.json"}
+    CacheCheck -->|"Cache Hit (0s Latency)"| Matchmaker["Matchmaker Agent\n(Cross-references with Preferences)"]
+    CacheCheck -->|"Cache Miss"| Researcher["Researcher Agent\n(Extracts Tropes, Genres, Pacing)"]
+    Researcher -->|"Structural DNA"| CacheStore[("Save to Research Cache")]
+    CacheStore --> Matchmaker
     Store[("Consolidated Taste Store\ndata/preferences.json\n(Likes & Dislikes)")] -->|"User Preferences"| Matchmaker
-    Matchmaker --> Verdict["3. Structured MatchVerdict\n(Score, Positives, Negatives, Verdict)"]
+    Matchmaker --> Verdict["Structured MatchVerdict\n(Score, Positives, Negatives, Verdict)"]
 ```
 
-1. **Structural Analysis (Researcher):** Breaks down the target media into its core structural DNA without plot spoilers.
+1. **Structural Analysis & Local Caching:** Breaks down the target media into its core structural DNA without plot spoilers, caching results in `data/research_cache.json` to eliminate duplicate network calls and absorb 503 high-demand errors.
 2. **Consolidated Taste Store (`preferences.json`):** Rather than reading dozens of separate markdown files (which bloat LLM context and cause hallucinations), your core likes and dislikes are aggregated into a single, clean knowledge base.
 3. **Structured Matching (Matchmaker):** Directly cross-references candidate media traits against your confirmed likes and dislikes to produce a validated `MatchVerdict` (compatibility percentage 0-100, recommendation tier, positive coincidences, watch-outs, and verdict).
-4. **Continuous Learning (Ingestor):** When you review media via `/review`, the Ingestor extracts new liked and disliked tropes and merges them into `preferences.json`.
+4. **Emergency Single-Pass Matchmaking:** If API demand spikes persistently interrupt the Researcher, the Matchmaker can evaluate candidate media directly in a single consolidated pass.
+5. **Continuous Learning (Ingestor):** When you review media via `/review`, the Ingestor extracts new liked and disliked tropes, merges them into `preferences.json`, and pre-caches the media's structural traits.
 
 ---
 
@@ -172,9 +177,10 @@ The suite validates:
 ├── models.py               # Pydantic data schemas (MediaReview, MediaResearch, MatchVerdict)
 ├── rag.py                  # Token-based LocalRAG engine with stopword filtration
 ├── guardrails.py           # Regex-based PII redaction filter
-├── evaluate.py             # Automated test suite (7 test suites)
+├── evaluate.py             # Automated test suite (9 test suites)
 └── data/                   # Categorized review archives & preference store
     ├── preferences.json    # Consolidated likes, dislikes & history
+    ├── research_cache.json # Local structural DNA cache (503 resilience)
     ├── movies.md           # Movie reviews
     ├── shows.md            # TV & series reviews
     ├── manhwa.md           # Manhwa, manga & anime reviews

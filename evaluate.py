@@ -14,7 +14,8 @@ if _venv_python.exists() and sys.executable != str(_venv_python):
     try:
         import pydantic_ai
     except ModuleNotFoundError:
-        os.execv(str(_venv_python), [str(_venv_python)] + sys.argv)
+        if sys.argv and sys.argv[0] != '-c':
+            os.execv(str(_venv_python), [str(_venv_python)] + sys.argv)
 
 import asyncio
 
@@ -24,9 +25,10 @@ from pydantic_ai.models.test import TestModel
 from prompt_toolkit.document import Document
 
 from guardrails import sanitize_pii
-from rag import PreferenceStore, get_media_category_filename, save_review_to_markdown
+from rag import PreferenceStore, get_media_category_filename, save_review_to_markdown, ResearchCache
 from models import MediaReview, MediaResearch, MatchVerdict
 from main import SlashCommandCompleter, is_likely_review
+from agents import emergency_matchmaker_agent
 
 def test_pii_sanitization():
     print("🧪 Running Test: PII Sanitization Guardrail...")
@@ -266,6 +268,65 @@ def test_smart_review_detection():
 
     print("   ✅ Smart Review Detection passed.")
 
+def test_research_cache():
+    print("🧪 Running Test: Local Research Cache (503 Resilience)...")
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        cache = ResearchCache(data_dir=tmpdir)
+        assert cache.get("Arcane") is None
+
+        sample_research = MediaResearch(
+            title="Arcane",
+            media_type="Animated Show",
+            genres=["Animation", "Steampunk", "Action"],
+            themes_and_tropes=["Sister conflict dynamics", "Tragic corruption"],
+            pacing="Fast-paced",
+            character_archetypes=["Tragic antihero", "Idealistic inventor"],
+            summary="A steampunk fantasy following two sisters."
+        )
+        cache.put("Arcane", sample_research)
+
+        # Test exact match
+        hit = cache.get("Arcane")
+        assert hit is not None
+        assert hit.title == "Arcane"
+        assert hit.media_type == "Animated Show"
+
+        # Test case-insensitivity and punctuation normalization
+        assert cache.get("arcane") is not None
+        assert cache.get("  ARCANE!  ") is not None
+        assert cache.get("Nonexistent Title") is None
+
+        # Verify disk persistence across fresh cache instance
+        cache2 = ResearchCache(data_dir=tmpdir)
+        hit2 = cache2.get("arcane")
+        assert hit2 is not None
+        assert hit2.title == "Arcane"
+
+    print("   ✅ Local Research Cache passed.")
+
+async def test_emergency_matchmaker_pipeline():
+    print("🧪 Running Test: Emergency Single-Pass Matchmaker Execution via TestModel...")
+    sample_verdict_payload = {
+        "title": "Arcane",
+        "match_score": 95,
+        "recommendation": "Strong Match",
+        "positive_coincidences": ["Fluid animation", "Sister dynamics"],
+        "negative_coincidences": [],
+        "verdict": "Exceptional fit for your preferences."
+    }
+    test_emergency = Agent(
+        TestModel(custom_output_args=sample_verdict_payload),
+        output_type=MatchVerdict
+    )
+    res = await test_emergency.run("Candidate: Arcane")
+    assert isinstance(res.output, MatchVerdict)
+    assert res.output.match_score == 95
+    assert res.output.recommendation == "Strong Match"
+
+    print("   ✅ Emergency Single-Pass Matchmaker passed.")
+
 def main():
     print("=" * 60)
     print("🚀 RUNNING MATCHMAKER TEST & EVALUATION SUITE")
@@ -278,10 +339,12 @@ def main():
         test_pydantic_schemas()
         test_media_category_markdown_separation()
         test_smart_review_detection()
+        test_research_cache()
+        asyncio.run(test_emergency_matchmaker_pipeline())
         asyncio.run(test_offline_agent_pipeline())
 
         print("=" * 60)
-        print("🎉 ALL TESTS PASSED SUCCESSFULLY! (7/7 test suites)")
+        print("🎉 ALL TESTS PASSED SUCCESSFULLY! (9/9 test suites)")
         print("=" * 60)
         return 0
     except AssertionError as ae:

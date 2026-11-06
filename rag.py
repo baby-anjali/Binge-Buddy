@@ -2,7 +2,52 @@ import json
 import re
 from pathlib import Path
 from typing import List, Dict, Any, Optional
-from models import MediaReview
+from models import MediaReview, MediaResearch
+
+class ResearchCache:
+    """Persistent local cache for media structural DNA to eliminate duplicate network calls and 503 errors."""
+    def __init__(self, data_dir: str | Path = "data"):
+        self.data_dir = Path(data_dir)
+        self.data_dir.mkdir(parents=True, exist_ok=True)
+        self.cache_file = self.data_dir / "research_cache.json"
+        self.cache: Dict[str, Dict[str, Any]] = {}
+        self.load()
+
+    def _normalize_title(self, title: str) -> str:
+        return re.sub(r"[^\w\s]", "", (title or "").lower()).strip()
+
+    def load(self):
+        if self.cache_file.exists():
+            try:
+                with open(self.cache_file, "r", encoding="utf-8") as f:
+                    self.cache = json.load(f)
+            except Exception:
+                self.cache = {}
+        else:
+            self.cache = {}
+
+    def save(self):
+        with open(self.cache_file, "w", encoding="utf-8") as f:
+            json.dump(self.cache, f, indent=2, ensure_ascii=False)
+
+    def get(self, title: str) -> Optional[MediaResearch]:
+        key = self._normalize_title(title)
+        if key and key in self.cache:
+            try:
+                return MediaResearch.model_validate(self.cache[key])
+            except Exception:
+                return None
+        return None
+
+    def put(self, title: str, research: MediaResearch):
+        key = self._normalize_title(title)
+        res_key = self._normalize_title(research.title)
+        data = research.model_dump()
+        if key:
+            self.cache[key] = data
+        if res_key:
+            self.cache[res_key] = data
+        self.save()
 
 CATEGORY_FILES = {
     "movie": "movies.md",
@@ -174,3 +219,6 @@ class PreferenceStore:
 
 # Alias for backward compatibility
 LocalRAG = PreferenceStore
+
+# Shared research cache singleton
+research_cache = ResearchCache("data")

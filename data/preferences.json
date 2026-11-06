@@ -11,7 +11,8 @@
     "Story was great and twists were unexpected",
     "Twist",
     "Underlying meaning and depth",
-    "Unexpected twists"
+    "Unexpected twists",
+    "elements of horror and gore"
   ],
   "dislikes": [
     "Aura-farming specific",
@@ -21,9 +22,9 @@
     "Long wait between seasons",
     "Slow, dragging middle pacing with excessive filler",
     "Supporting characters fading into the background during major solo arcs",
-    "Too violent",
     "Too violent for me",
-    "Unattractive gore-y violence"
+    "Unattractive gore-y violence",
+    "nudity"
   ],
   "history": [
     {
@@ -45,6 +46,11 @@
       "title": "Alice in Wonderland",
       "type": "Movie",
       "rating": "4/5"
+    },
+    {
+      "title": "Carrie",
+      "type": "Movie",
+      "rating": "4.5/5"
     }
   ]
 }

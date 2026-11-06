@@ -34,3 +34,18 @@ Despite the excessive gore and focus on "aura-farming," the film offers a compel
 
 ### Final Verdict
 The live-action Alice in Wonderland initially took time to resonate with the reviewer but ultimately grew on them due to its underlying meaning and depth.
+
+## Carrie
+**Type:** Movie  
+**Genre:** Horror, Tragedy  
+**Status:** Completed  
+**My Rating:** 4.5/5  
+
+### What I Liked
+* elements of horror and gore
+
+### What I Disliked
+* nudity
+
+### Final Verdict
+A tragic and sad movie with enjoyable horror and gore elements. The ending left me bittersweet, and overall, I really liked the movie.
