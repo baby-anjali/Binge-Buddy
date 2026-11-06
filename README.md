@@ -40,8 +40,11 @@ Create a `.env` file in the project directory:
 # Google Gemini API Key from Google AI Studio (https://aistudio.google.com/)
 GEMINI_API_KEY=your_gemini_api_key_here
 
-# Optional: Override the model (defaults to google:gemini-3.8-flash)
-LLM_MODEL=google:gemini-3.8-flash
+# Optional: Override the model (defaults to google:gemini-2.5-flash)
+LLM_MODEL=google:gemini-2.5-flash
+
+# Required for function calling and structured outputs with Google GenAI
+GOOGLE_GENAI_API_VERSION=v1beta
 ```
 
 > **Security Note:** Never commit `.env` to version control; it is ignored by `.gitignore`.

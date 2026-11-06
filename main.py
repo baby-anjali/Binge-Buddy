@@ -5,6 +5,8 @@ from pathlib import Path
 
 # Disable noisy banner if not explicitly opted in
 os.environ.setdefault("PYDANTIC_AI_NO_BANNER", "1")
+# Ensure Google GenAI uses v1beta for function calling and structured outputs
+os.environ.setdefault("GOOGLE_GENAI_API_VERSION", "v1beta")
 
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import Completer, Completion
@@ -246,12 +248,12 @@ async def main():
                 print(
                     "\n❌ [Service Busy]: Google Gemini is experiencing temporary high demand (503 Service Unavailable).\n"
                     "   • This spike is usually temporary. Please try again in a few moments.\n"
-                    "   • Tip: You can configure 'LLM_MODEL=google:gemini-3.8-flash' in '.env' for reliable availability."
+                    "   • Tip: You can configure 'LLM_MODEL=google:gemini-2.5-flash' in '.env' for reliable availability."
                 )
             elif "404" in err_str and ("no longer available" in err_str.lower() or "not found" in err_str.lower()):
                 print(
                     "\n❌ [Model Deprecated / Not Found]: The configured Gemini model is no longer available.\n"
-                    "   • Update 'LLM_MODEL=google:gemini-3.8-flash' in your '.env' file."
+                    "   • Update 'LLM_MODEL=google:gemini-2.5-flash' in your '.env' file."
                 )
             elif "nodename nor servname" in err_str.lower() or "connection" in err_str.lower():
                 print(

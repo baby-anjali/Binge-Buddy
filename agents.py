@@ -1,6 +1,9 @@
 import os
 from dotenv import load_dotenv
 
+# Ensure Google GenAI uses v1beta for function calling and structured outputs
+os.environ.setdefault("GOOGLE_GENAI_API_VERSION", "v1beta")
+
 # Load env vars immediately to ensure API keys are accessible
 load_dotenv()
 
@@ -8,9 +11,9 @@ from pydantic_ai import Agent
 from rag import LocalRAG
 from models import MediaReview, MediaResearch, MatchVerdict
 
-# Allow model configuration via environment variable (defaults to Google Gemini 3.8 Flash)
-DEFAULT_MODEL = os.getenv("LLM_MODEL", "google:gemini-3.8-flash")
-FALLBACK_MODEL = os.getenv("LLM_FALLBACK_MODEL", "google:gemini-3.8-flash")
+# Allow model configuration via environment variable (defaults to Google Gemini 2.5 Flash)
+DEFAULT_MODEL = os.getenv("LLM_MODEL", "google:gemini-2.5-flash")
+FALLBACK_MODEL = os.getenv("LLM_FALLBACK_MODEL", "google:gemini-2.5-flash")
 
 async def run_agent_with_fallback(agent: Agent, prompt: str, **kwargs):
     """Executes an agent run with automatic fallback on 503 / 404 / high-demand errors."""
@@ -18,11 +21,12 @@ async def run_agent_with_fallback(agent: Agent, prompt: str, **kwargs):
         return await agent.run(prompt, **kwargs)
     except Exception as e:
         err_msg = str(e).lower()
-        if any(term in err_msg for term in ["503", "404", "high demand", "unavailable", "resource_exhausted", "no longer available"]):
+        if any(term in err_msg for term in ["503", "404", "429", "high demand", "unavailable", "resource_exhausted", "no longer available"]):
             current_model_str = str(getattr(agent, "model", ""))
-            if FALLBACK_MODEL not in current_model_str:
-                print(f"\n⚠️  [Model Overloaded / Unavailable]: Primary model encountered an issue. Failing over to '{FALLBACK_MODEL}'...")
-                return await agent.run(prompt, model=FALLBACK_MODEL, **kwargs)
+            target_fallback = FALLBACK_MODEL if "2.5-flash" not in current_model_str else "google:gemini-2.5-flash"
+            if target_fallback not in current_model_str:
+                print(f"\n⚠️  [Model Overloaded / Unavailable]: Primary model encountered an issue. Failing over to '{target_fallback}'...")
+                return await agent.run(prompt, model=target_fallback, **kwargs)
         raise
 
 # Initialize RAG

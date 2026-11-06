@@ -5,7 +5,10 @@ Pydantic schemas, offline agent pipeline, and slash command auto-completion.
 """
 
 import sys
+import os
 import asyncio
+
+os.environ.setdefault("GOOGLE_GENAI_API_VERSION", "v1beta")
 from pydantic_ai import Agent
 from pydantic_ai.models.test import TestModel
 from prompt_toolkit.document import Document
